@@ -4,6 +4,9 @@ import com.pasteleria.model.Categoria;
 import com.pasteleria.model.Productos;
 import com.pasteleria.repository.CategoriaRepository;
 import com.pasteleria.repository.ProductosRepository;
+import com.pasteleria.repository.UsuarioRepository;
+import com.pasteleria.model.Usuarios;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +20,14 @@ public class CargaDatos implements CommandLineRunner {
     private final ProductosRepository productosRepo;
     private final CategoriaRepository categoriaRepo;
 
-    public CargaDatos(ProductosRepository productosRepo, CategoriaRepository categoriaRepo) {
+    private final UsuarioRepository usuarioRepo;
+    private final PasswordEncoder passwordEncoder;
+
+    public CargaDatos(ProductosRepository productosRepo, CategoriaRepository categoriaRepo, UsuarioRepository usuarioRepo, PasswordEncoder passwordEncoder) {
         this.productosRepo = productosRepo;
         this.categoriaRepo = categoriaRepo;
+        this.usuarioRepo = usuarioRepo;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -30,6 +38,35 @@ public class CargaDatos implements CommandLineRunner {
             System.out.println("🚀 Iniciando carga de datos...");
             cargarDatosIniciales();
             System.out.println("✅ Datos cargados. Revisa los IDs arriba para usar en Swagger.");
+        }
+
+        // Crear o actualizar usuario admin (útil para desarrollo)
+        String adminUsername = "admin@pasteleria.com";
+        String adminPassword = "admin123";
+        
+        // Eliminar usuario "admin" antiguo si existe
+        usuarioRepo.findByNombreUsuario("admin").ifPresent(oldAdmin -> {
+            usuarioRepo.delete(oldAdmin);
+            System.out.println("🗑️ Usuario 'admin' antiguo eliminado");
+        });
+        
+        // Crear o actualizar usuario admin con email
+        var adminOptional = usuarioRepo.findByNombreUsuario(adminUsername);
+        if (adminOptional.isEmpty()) {
+            Usuarios admin = new Usuarios();
+            admin.setNombreUsuario(adminUsername);
+            admin.setContrasena(passwordEncoder.encode(adminPassword));
+            admin.setRol("ROLE_ADMIN");
+            admin.setNombre("Administrador");
+            usuarioRepo.save(admin);
+            System.out.println("🔐 Usuario admin creado: usuario='" + adminUsername + "' password='" + adminPassword + "'");
+        } else {
+            // Actualizar contraseña del admin existente
+            Usuarios admin = adminOptional.get();
+            admin.setContrasena(passwordEncoder.encode(adminPassword));
+            admin.setNombre("Administrador");
+            usuarioRepo.save(admin);
+            System.out.println("🔐 Usuario admin actualizado: usuario='" + adminUsername + "' password='" + adminPassword + "'");
         }
     }
 

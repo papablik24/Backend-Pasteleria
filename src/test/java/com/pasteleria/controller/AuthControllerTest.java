@@ -52,7 +52,7 @@ class AuthControllerTest {
 
     @Test
     void registro_retornaUsuario() throws Exception {
-        Usuarios u = new Usuarios(1L, "u", null, "ROL_CLIENTE");
+        Usuarios u = new Usuarios(1L, "u", null, "ROL_CLIENTE", null);
         when(userService.register(any(Usuarios.class))).thenReturn(u);
 
         var req = new Usuarios(); req.setNombreUsuario("u"); req.setContrasena("p");

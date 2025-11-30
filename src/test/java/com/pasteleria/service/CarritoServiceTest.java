@@ -35,7 +35,7 @@ class CarritoServiceTest {
 
     @Test
     void getOrCreateCart_existing() {
-        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROL_CLIENTE");
+        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROL_CLIENTE", null);
         Carrito carrito = Carrito.builder().id(1L).usuario(usuarios).items(new ArrayList<>()).build();
 
         when(userRepository.findByNombreUsuario("u")).thenReturn(Optional.of(usuarios));
@@ -47,7 +47,7 @@ class CarritoServiceTest {
 
     @Test
     void addToCart_newItem() {
-        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROLE_CLIENT");
+        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROLE_CLIENT", null);
         Carrito carrito = Carrito.builder().id(1L).usuario(usuarios).items(new ArrayList<>()).build();
         Productos productos = Productos.builder().id(2L).nombre("Prod").precio(10.0).stock(5).build();
 
@@ -66,7 +66,7 @@ class CarritoServiceTest {
 
     @Test
     void removeFromCart_removesItem() {
-        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROLE_CLIENT");
+        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROLE_CLIENT", null);
         Productos productos = Productos.builder().id(2L).nombre("Prod").precio(10.0).stock(5).build();
         CarritoItems ci = CarritoItems.builder().id(1L).producto(productos).cantidad(1).build();
         Carrito carrito = Carrito.builder().id(1L).usuario(usuarios).items(new ArrayList<>()).build();

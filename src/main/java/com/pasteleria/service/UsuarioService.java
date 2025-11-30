@@ -27,12 +27,48 @@ public class UsuarioService implements UserDetailsService {
 
     public Usuarios register(Usuarios user) {
         user.setContrasena(passwordEncoder.encode(user.getContrasena()));
-        if (user.getRol() == null) user.setRol("ROLE_USER");
+        if (user.getRol() == null) user.setRol("cliente");
         return usuarioRepository.save(user);
     }
 
     public Optional<Usuarios> findByNombreUsuario(String nombreUsuario) {
         return usuarioRepository.findByNombreUsuario(nombreUsuario);
+    }
+
+    public List<Usuarios> findAll() {
+        return usuarioRepository.findAll();
+    }
+
+    public Optional<Usuarios> findById(Long id) {
+        return usuarioRepository.findById(id);
+    }
+
+    public Usuarios update(Long id, Usuarios usuarioActualizado) {
+        Usuarios usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+        
+        // Actualizar solo los campos que no son nulos
+        if (usuarioActualizado.getNombreUsuario() != null) {
+            usuario.setNombreUsuario(usuarioActualizado.getNombreUsuario());
+        }
+        if (usuarioActualizado.getContrasena() != null && !usuarioActualizado.getContrasena().isEmpty()) {
+            usuario.setContrasena(passwordEncoder.encode(usuarioActualizado.getContrasena()));
+        }
+        if (usuarioActualizado.getRol() != null) {
+            usuario.setRol(usuarioActualizado.getRol());
+        }
+        if (usuarioActualizado.getNombre() != null) {
+            usuario.setNombre(usuarioActualizado.getNombre());
+        }
+        
+        return usuarioRepository.save(usuario);
+    }
+
+    public void delete(Long id) {
+        if (!usuarioRepository.existsById(id)) {
+            throw new RuntimeException("Usuario no encontrado con id: " + id);
+        }
+        usuarioRepository.deleteById(id);
     }
 
     @Override

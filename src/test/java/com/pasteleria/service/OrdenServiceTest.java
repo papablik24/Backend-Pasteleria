@@ -33,7 +33,7 @@ class OrdenServiceTest {
 
     @Test
     void checkout_success() {
-        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROLE_CLIENT");
+        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROLE_CLIENT", null);
         Productos productos = Productos.builder().id(2L).nombre("T").precio(5.0).stock(10).build();
         CarritoItems ci = CarritoItems.builder().producto(productos).cantidad(2).build();
         Carrito carrito = Carrito.builder().id(1L).usuario(usuarios).items(new ArrayList<>()).build();
@@ -53,7 +53,7 @@ class OrdenServiceTest {
 
     @Test
     void checkout_insufficientStock_throws() {
-        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROL_CLIENT");
+        Usuarios usuarios = new Usuarios(1L, "u", "p", "ROL_CLIENT", null);
         Productos productos = Productos.builder().id(2L).nombre("T").precio(5.0).stock(1).build();
         CarritoItems ci = CarritoItems.builder().producto(productos).cantidad(2).build();
         Carrito carrito = Carrito.builder().id(1L).usuario(usuarios).items(new ArrayList<>()).build();

@@ -1,6 +1,8 @@
 package com.pasteleria.controller;
 
+import com.pasteleria.dto.StockResponse;
 import com.pasteleria.model.Productos;
+import com.pasteleria.repository.CategoriaRepository;
 import com.pasteleria.repository.ProductosRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,15 +22,48 @@ import java.util.List;
 public class ProductosController {
 
     private final ProductosRepository productosRepository;
+    private final CategoriaRepository categoriaRepository;
 
-    public ProductosController(ProductosRepository productosRepository) {
+    public ProductosController(ProductosRepository productosRepository, CategoriaRepository categoriaRepository) {
         this.productosRepository = productosRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
     @GetMapping
     @Operation(summary = "Listar productos", description = "Devuelve la lista de productos disponibles")
     public List<Productos> all() {
         return productosRepository.findAll();
+    }
+
+    @GetMapping("/stock")
+    @Operation(summary = "Ver stock de productos", description = "Devuelve la lista de productos con información de stock disponible")
+    public ResponseEntity<List<StockResponse>> getStock() {
+        List<Productos> productos = productosRepository.findAll();
+        List<StockResponse> stockList = productos.stream()
+                .map(p -> new StockResponse(
+                        p.getId(),
+                        p.getNombre(),
+                        p.getStock(),
+                        p.getEstado(),
+                        p.getPrecio()
+                ))
+                .toList();
+        return ResponseEntity.ok(stockList);
+    }
+
+    @PatchMapping("/{id}/stock")
+    @Operation(summary = "Actualizar stock de producto", description = "Actualiza la cantidad de stock de un producto específico")
+    public ResponseEntity<?> updateStock(@PathVariable Long id, @RequestParam Integer cantidad) {
+        return productosRepository.findById(id).map(producto -> {
+            producto.setStock(cantidad);
+            if (cantidad > 0) {
+                producto.setEstado("disponible");
+            } else {
+                producto.setEstado("agotado");
+            }
+            productosRepository.save(producto);
+            return ResponseEntity.ok().body("Stock actualizado: " + producto.getNombre() + " = " + cantidad + " unidades");
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}")
@@ -54,17 +89,21 @@ public class ProductosController {
     public ResponseEntity<Productos> update(@PathVariable Long id, @RequestBody Productos p) {
         return productosRepository.findById(id).map(existing -> {
             // 1. Campos Básicos
-            existing.setNombre(p.getNombre());
-            existing.setDescripcion(p.getDescripcion());
-            existing.setPrecio(p.getPrecio());
-            existing.setStock(p.getStock());
+            if (p.getNombre() != null) existing.setNombre(p.getNombre());
+            if (p.getDescripcion() != null) existing.setDescripcion(p.getDescripcion());
+            if (p.getPrecio() != null) existing.setPrecio(p.getPrecio());
+            if (p.getStock() != null) existing.setStock(p.getStock());
 
-            // 2. NUEVOS CAMPOS (Crucial para el Frontend y Seeder)
-            existing.setCodigo(p.getCodigo());
-            existing.setImagenUrl(p.getImagenUrl()); // Mapea 'img' del front a 'imagenUrl'
-            existing.setEstado(p.getEstado());       // 'disponible', 'agotado'
-            existing.setDescuento(p.getDescuento()); // Ofertas
-            existing.setCategoria(p.getCategoria()); // Relación BD
+            // 2. NUEVOS CAMPOS
+            if (p.getCodigo() != null) existing.setCodigo(p.getCodigo());
+            if (p.getImagenUrl() != null) existing.setImagenUrl(p.getImagenUrl());
+            if (p.getEstado() != null) existing.setEstado(p.getEstado());
+            if (p.getDescuento() != null) existing.setDescuento(p.getDescuento());
+            
+            // 3. CATEGORÍA - Manejar correctamente
+            if (p.getCategoria() != null && p.getCategoria().getId() != null) {
+                categoriaRepository.findById(p.getCategoria().getId()).ifPresent(existing::setCategoria);
+            }
 
             return ResponseEntity.ok(productosRepository.save(existing));
         }).orElse(ResponseEntity.notFound().build());

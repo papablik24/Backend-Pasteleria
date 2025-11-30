@@ -30,16 +30,30 @@ public class OrdenController {
     }
 
     @PostMapping("/checkout")
-    @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('cliente') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_USER')")
     @Operation(summary = "Checkout", description = "Realiza el pago/checkout del carrito del usuario autenticado")
     @ApiResponse(responseCode = "200", description = "Orden creada", content = @Content(schema = @Schema(implementation = Orden.class)))
     public ResponseEntity<?> checkout(@AuthenticationPrincipal UserDetails ud) {
-        Orden orden = ordenService.checkout(ud.getUsername());
-        return ResponseEntity.ok(orden);
+        if (ud == null) {
+            System.out.println("❌ Usuario no autenticado intentando hacer checkout");
+            return ResponseEntity.status(401).body("Usuario no autenticado");
+        }
+        System.out.println("✅ Usuario: " + ud.getUsername());
+        System.out.println("✅ Authorities: " + ud.getAuthorities());
+        ud.getAuthorities().forEach(auth -> System.out.println("   - Authority: " + auth.getAuthority()));
+        
+        try {
+            Orden orden = ordenService.checkout(ud.getUsername());
+            return ResponseEntity.ok(orden);
+        } catch (Exception e) {
+            System.out.println("❌ Error en checkout: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('VENDOR')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_VENDOR')")
     @Operation(summary = "Listar órdenes", description = "Lista todas las órdenes (ADMIN, VENDOR)")
     public ResponseEntity<?> listAll() {
         List<Orden> all = ordenRepository.findAll();
@@ -47,7 +61,7 @@ public class OrdenController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('VENDOR') or hasRole('CLIENT')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_VENDOR') or hasAuthority('cliente') or hasAuthority('ROLE_USER')")
     @Operation(summary = "Detalle de orden", description = "Devuelve detalle de la orden. Clientes solo pueden ver sus órdenes")
     public ResponseEntity<?> getById(@PathVariable Long id, @AuthenticationPrincipal UserDetails ud) {
         return ordenRepository.findById(id).map(orden -> {

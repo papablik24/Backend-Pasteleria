@@ -22,4 +22,7 @@ public class Usuarios {
 
     @Column(nullable = false)
     private String rol; // e.g. ROLE_USER, ROLE_ADMIN
+
+    @Column
+    private String nombre; // Nombre completo del usuario
 }

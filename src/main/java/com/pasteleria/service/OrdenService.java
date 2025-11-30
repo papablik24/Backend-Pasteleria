@@ -28,12 +28,24 @@ public class OrdenService {
     public Orden checkout(String nombreUsuario) {
         Carrito carrito = carritoService.getOrCrearCarrito(nombreUsuario);
         if (carrito.getItems().isEmpty()) throw new RuntimeException("Carrito vacío");
+        
+        System.out.println("🛒 CHECKOUT - Usuario: " + nombreUsuario);
+        System.out.println("🛒 Items en carrito: " + carrito.getItems().size());
+        
         // verify stock and compute total
         double total = 0.0;
         for (CarritoItems ci : carrito.getItems()) {
             Productos p = productosRepository.findById(ci.getProducto().getId()).orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+            
+            System.out.println("📦 Producto: " + p.getNombre() + 
+                             " | Stock disponible: " + p.getStock() + 
+                             " | Cantidad en carrito: " + ci.getCantidad());
+            
             if (p.getStock() == null || p.getStock() < ci.getCantidad()) {
-                throw new RuntimeException("Stock insuficiente para producto: " + p.getNombre());
+                String errorMsg = "Stock insuficiente para producto: " + p.getNombre() + 
+                                " (Disponible: " + p.getStock() + ", Solicitado: " + ci.getCantidad() + ")";
+                System.out.println("❌ " + errorMsg);
+                throw new RuntimeException(errorMsg);
             }
             total += p.getPrecio() * ci.getCantidad();
         }
