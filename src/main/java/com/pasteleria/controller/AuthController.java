@@ -76,8 +76,8 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "Lista de usuarios")
     public ResponseEntity<?> getAllUsers() {
         var usuarios = userService.findAll();
-        // TEMPORAL: No ocultar contraseñas (solo para desarrollo)
-        // usuarios.forEach(u -> u.setContrasena(null));
+        // Ocultar contraseñas por seguridad
+        usuarios.forEach(u -> u.setContrasena(null));
         return ResponseEntity.ok(usuarios);
     }
 

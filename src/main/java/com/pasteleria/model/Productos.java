@@ -26,7 +26,7 @@ public class Productos {
     @Column(nullable = false)
     private String nombre;
 
-    // Aumentamos la longitud porque tus descripciones son largas
+    // Aumentamos la longitud porque las descripciones son largas
     @Column(length = 1000) 
     private String descripcion;
 
