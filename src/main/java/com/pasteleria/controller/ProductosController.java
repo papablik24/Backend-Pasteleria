@@ -75,7 +75,7 @@ public class ProductosController {
     }
 
     @PostMapping
-    // @PreAuthorize("hasRole('ADMIN')") // Descomentar si usas @EnableMethodSecurity
+    // @PreAuthorize("hasRole('ADMIN')") //
     @Operation(summary = "Crear producto", description = "Crea un producto nuevo (solo ADMIN)")
     @ApiResponse(responseCode = "200", description = "Producto creado", content = @Content(schema = @Schema(implementation = Productos.class)))
     public Productos create(@RequestBody Productos producto) {
@@ -84,7 +84,7 @@ public class ProductosController {
     }
 
     @PutMapping("/{id}")
-    // @PreAuthorize("hasRole('ADMIN')") // Descomentar si usas @EnableMethodSecurity
+    // @PreAuthorize("hasRole('ADMIN')") // 
     @Operation(summary = "Actualizar producto", description = "Actualiza un producto existente (solo ADMIN)")
     public ResponseEntity<Productos> update(@PathVariable Long id, @RequestBody Productos p) {
         return productosRepository.findById(id).map(existing -> {
